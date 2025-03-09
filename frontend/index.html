@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Catalog</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Product Catalog</h1>
+  <div id="products" class="product-grid"></div>
+
+  <script>
+    fetch('/api/products')
+      .then(response => response.json())
+      .then(products => {
+        const productsDiv = document.getElementById('products');
+        products.forEach(product => {
+          const productDiv = document.createElement('div');
+          productDiv.classList.add('product-card');
+          productDiv.innerHTML = `
+            <h2>${product.name}</h2>
+            <p>Price: $${product.price}</p>
+            <p>Description: ${product.description}</p>
+            <p>Category: ${product.category.join(', ')}</p>
+          `;
+          productsDiv.appendChild(productDiv);
+        });
+      })
+      .catch(error => console.error('Error fetching products:', error));
+  </script>
+</body>
+</html>

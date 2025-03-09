@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Admin Panel</h1>
+  <div>
+    <h2>Add Product</h2>
+    <form id="add-product-form">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required><br>
+      <label for="price">Price:</label>
+      <input type="number" id="price" name="price" required><br>
+      <label for="description">Description:</label>
+      <textarea id="description" name="description" required></textarea><br>
+      <label for="category">Category:</label>
+      <input type="text" id="category" name="category" required><br>
+      <button type="submit">Add Product</button>
+    </form>
+  </div>
+  <div id="products" class="product-grid"></div>
+
+  <script>
+    const addProductForm = document.getElementById('add-product-form');
+    addProductForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const formData = new FormData(addProductForm);
+      const product = {
+        name: formData.get('name'),
+        price: parseFloat(formData.get('price')),
+        description: formData.get('description'),
+        category: formData.get('category').split(',').map(cat => cat.trim())
+      };
+      fetch('http://localhost:8080/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify([product])
+      })
+      .then(response => response.json())
+      .then(newProduct => {
+        alert('Product added successfully!');
+        location.reload();
+      });
+    });
+
+    fetch('http://localhost:8080/api/products')
+      .then(response => response.json())
+      .then(products => {
+        const productsDiv = document.getElementById('products');
+        products.forEach(product => {
+          const productDiv = document.createElement('div');
+          productDiv.classList.add('product-card');
+          productDiv.innerHTML = `
+            <h2>${product.name}</h2>
+            <p>Price: $${product.price}</p>
+            <p>Description: ${product.description}</p>
+            <p>Category: ${product.category.join(', ')}</p>
+            <button onclick="editProduct(${product.id})">Edit</button>
+            <button onclick="deleteProduct(${product.id})">Delete</button>
+          `;
+          productsDiv.appendChild(productDiv);
+        });
+      });
+
+    function editProduct(id) {
+      const newName = prompt('Enter new name:');
+      const newPrice = parseFloat(prompt('Enter new price:'));
+      const newDescription = prompt('Enter new description:');
+      const newCategory = prompt('Enter new category:').split(',').map(cat => cat.trim());
+      const updatedProduct = { name: newName, price: newPrice, description: newDescription, category: newCategory };
+      fetch(`http://localhost:8080/api/products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedProduct)
+      })
+      .then(response => response.json())
+      .then(updatedProduct => {
+        alert('Product updated successfully!');
+        location.reload();
+      });
+    }
+
+    function deleteProduct(id) {
+      if (confirm('Are you sure you want to delete this product?')) {
+        fetch(`http://localhost:8080/api/products/${id}`, {
+          method: 'DELETE'
+        })
+        .then(() => {
+          alert('Product deleted successfully!');
+          location.reload();
+        });
+      }
+    }
+  </script>
+</body>
+</html>
